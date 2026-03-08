@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, useTransform, AnimatePresence } from 'framer-motion';
 import { RefreshCcw } from 'lucide-react';
 
-const PAIN_POINTS = ["소모적인 단순 반복", "비규격화된\n분산데이터", "휴먼 에러"];
+const PAIN_POINTS = ["휴먼에러", "업무병목", "데이터분산", "비표준화", "단순반복"];
 
 const CHAT_MESSAGES = [
   { id: 1, emoji: "😠", text: "보내주신 엑셀 파일이 열리지가 않는데 다시 한번 확인 부탁드립니다.", align: "left" },
@@ -62,7 +62,7 @@ const Agitation = ({ progress }) => {
       
       {/* Background Glow */}
       <motion.div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-red-900/10 rounded-full blur-[100px] pointer-events-none"
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-yellow-900/10 rounded-full blur-[100px] pointer-events-none"
         animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.5, 0.3] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
       />
@@ -78,19 +78,19 @@ const Agitation = ({ progress }) => {
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-            className="absolute w-72 h-72 border-2 border-red-500/20 rounded-full border-dashed"
+            className="absolute w-72 h-72 border-4 border-yellow-500/30 rounded-full border-dashed"
           />
           <motion.div
             animate={{ rotate: -360 }}
             transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-            className="absolute w-96 h-96 border border-red-500/10 rounded-full hidden md:block"
+            className="absolute w-96 h-96 border-4 border-yellow-500/20 rounded-full hidden md:block"
           />
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
             className="absolute w-56 h-56 flex items-center justify-center"
           >
-            <RefreshCcw className="text-red-500/30 w-full h-full p-10" strokeWidth={1} />
+            <RefreshCcw className="text-yellow-500/30 w-full h-full p-10" strokeWidth={1} />
           </motion.div>
 
           <div className="h-32 flex flex-col items-center justify-center z-10 w-full">
@@ -107,7 +107,7 @@ const Agitation = ({ progress }) => {
               </motion.h2>
             </AnimatePresence>
           </div>
-          <div className="absolute bottom-10 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-semibold tracking-widest text-xs uppercase z-10 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+          <div className="absolute bottom-10 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 font-semibold tracking-widest text-xs uppercase z-10 shadow-[0_0_15px_rgba(234,179,8,0.2)]">
             Endless Loop
           </div>
         </div>

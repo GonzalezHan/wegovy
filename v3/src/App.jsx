@@ -28,13 +28,13 @@ function App() {
   // 0.85 -> 0.95: Transition to Blue (ContactUs)
   const backgroundColor = useTransform(
     scrollYProgress,
-    [0.10, 0.18, 0.65, 0.75, 0.90, 0.95], 
+    [0.10, 0.13, 0.65, 0.75, 0.90, 0.95], 
     ['#0a0a0a', '#ffffff', '#ffffff', '#0a0a0a', '#0a0a0a', '#284283'] 
   );
   
   const textColor = useTransform(
     scrollYProgress,
-    [0.10, 0.18, 0.65, 0.75, 0.90, 0.95],
+    [0.10, 0.13, 0.65, 0.75, 0.90, 0.95],
     ['#cecece', '#0f172a', '#0f172a', '#cecece', '#cecece', '#ffffff']
   );
 
