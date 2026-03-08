@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply m-0 p-0 overflow-x-hidden antialiased;
+    background-color: #0a0a0a; /* Initial dark mode starting point */
+    color: #ffffff;
+    transition: background-color 0.5s ease-out, color 0.5s ease-out;
+  }
+}
+
+/* Hide scrollbar for a seamless storytelling experience */
+::-webkit-scrollbar {
+  display: none;
+}
