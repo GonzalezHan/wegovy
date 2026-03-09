@@ -4,9 +4,9 @@ const ContactUs = () => {
   return (
     <section className="h-full w-full flex flex-col items-center justify-center relative bg-transparent text-white px-6 pointer-events-auto">
       <div className="text-center w-full max-w-4xl">
-        <h2 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-snug mb-10 text-white break-keep pb-4">
-          여러분의 페인포인트(Pain-point)가<br/>
-          자동화의 시작입니다.
+        <h2 className="text-3xl md:text-5xl lg:text-6xl font-black tracking-tight leading-snug mb-10 text-white break-keep pb-4">
+          <span className="inline-block">여러분의 페인포인트(Pain-point)</span>{' '}
+          <span className="inline-block">자동화의 시작입니다.</span>
         </h2>
         
         <div className="text-lg md:text-xl lg:text-2xl font-light opacity-90 leading-relaxed mb-16 break-keep">
