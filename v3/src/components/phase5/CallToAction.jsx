@@ -20,7 +20,7 @@ const CallToAction = ({ progress }) => {
         <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-tight mb-8">
           이제 엑셀 대신,<br/>
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
-            진짜 재무의 본질
+            재무의 본질
           </span>에 집중할 시간입니다.
         </h2>
         
