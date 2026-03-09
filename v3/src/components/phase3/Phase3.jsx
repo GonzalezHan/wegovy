@@ -185,8 +185,8 @@ const Phase3 = () => {
         >
           <div className="z-10 text-left max-w-xl md:w-1/2">
             <span className="text-purple-600 font-bold tracking-wider text-sm uppercase block mb-4">Step 2. Automation Magic</span>
-            <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight mb-6">
-              취합을 위한 끝없는 복붙과 양식 수정?<br/>
+            <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight text-slate-900 leading-tight mb-6 break-keep">
+              끝없는 복붙과 양식 수정?<br/>
               이제 <span className="text-purple-600">버튼 한 번</span>이면 끝납니다.
             </h2>
             <p className="text-lg text-slate-600">
