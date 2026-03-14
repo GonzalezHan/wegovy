@@ -52,17 +52,13 @@ const StartIntro = ({ onStart }) => {
         className="relative z-10 flex flex-col items-center justify-center px-6 text-center"
       >
         <div className="mb-5 text-xs font-semibold uppercase tracking-[0.42em] text-slate-400">
-          WegoBe Automation
+          WegoVy
         </div>
         <h1 className="max-w-4xl text-4xl font-bold tracking-tight text-white md:text-6xl">
           반복 업무를
           <br />
           자동화의 흐름으로 바꿉니다
         </h1>
-        <p className="mt-6 max-w-2xl text-base leading-relaxed text-slate-300 md:text-lg">
-          맥 설치처럼 왼쪽 업무 상태를 오른쪽 원하는 상태로 드래그해 흐름을 시작합니다.
-        </p>
-
         <div className="relative mt-14 flex w-full max-w-5xl items-start justify-center gap-10 px-4 md:gap-20">
           <div id="start-intro-source" className="flex w-[180px] flex-col items-center">
             <div className="flex h-[156px] w-[156px] items-center justify-center rounded-[40px] border border-white/40 bg-white text-[#f43f5e] shadow-[0_16px_40px_rgba(255,255,255,0.2)]">
