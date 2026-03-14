@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useTransform } from 'framer-motion';
 import {
   Activity,
@@ -128,6 +128,18 @@ const PEOPLE_TUTORIALS = [
       ['업데이트 시각', '08:01'],
       ['요약 이슈', '5개'],
       ['회사별 섹션', '10개'],
+    ],
+  },
+  {
+    id: 'demo',
+    label: 'DEMO Live',
+    helper: '실제 실행 화면을 녹화한 데모 영상으로, 문서 취합부터 최종 산출물 확인까지의 흐름을 그대로 재생합니다.',
+    callout: '실제 운영 흐름을 한 번에 확인하려면 DEMO Live 탭에서 녹화 영상을 재생해 주세요.',
+    chips: ['Screen Recording', 'Runtime Flow', 'Final Output'],
+    stats: [
+      ['데모 타입', '실제 녹화'],
+      ['포함 구간', '실행 전 과정'],
+      ['출력 결과', '최종 보고서'],
     ],
   },
 ];
@@ -308,6 +320,7 @@ function CaseModal({ item, onClose }) {
   const [visibleLogCount, setVisibleLogCount] = useState(0);
   const [completedStatusCount, setCompletedStatusCount] = useState(0);
   const [outputRevealCount, setOutputRevealCount] = useState(0);
+  const demoVideoRef = useRef(null);
 
   useEffect(() => {
     if (item?.demo?.type === 'people') {
@@ -373,6 +386,27 @@ function CaseModal({ item, onClose }) {
 
   const activeTutorial =
     PEOPLE_TUTORIALS.find((tutorial) => tutorial.id === activeTutorialId) ?? PEOPLE_TUTORIALS[0];
+
+  const handleDemoPlay = () => {
+    const video = demoVideoRef.current;
+
+    if (!video) {
+      return;
+    }
+
+    if (document.fullscreenElement) {
+      return;
+    }
+
+    if (typeof video.requestFullscreen === 'function') {
+      video.requestFullscreen().catch(() => {});
+      return;
+    }
+
+    if (typeof video.webkitEnterFullscreen === 'function') {
+      video.webkitEnterFullscreen();
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -581,7 +615,7 @@ function CaseModal({ item, onClose }) {
                             </div>
 
                           </div>
-                        ) : (
+                        ) : activeTutorial.id === 'output' ? (
                           <div className="relative p-6">
                             <div className="mb-4 flex flex-wrap gap-3">
                               {activeTutorial.chips.map((chip) => (
@@ -647,6 +681,54 @@ function CaseModal({ item, onClose }) {
                               </div>
                             </div>
 
+                          </div>
+                        ) : (
+                          <div className="relative p-6">
+                            <div className="mb-4 flex flex-wrap gap-3">
+                              {activeTutorial.chips.map((chip) => (
+                                <div key={chip} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600">
+                                  {chip}
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+                              <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 shadow-sm">
+                                <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 text-white">
+                                  <div className="flex items-center gap-2 text-sm font-semibold text-sky-300">
+                                    <Play size={16} />
+                                    Weekly Issue Demo Recording
+                                  </div>
+                                  <div className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">LIVE PLAYBACK</div>
+                                </div>
+                                <div className="bg-black p-3">
+                                  <video
+                                    ref={demoVideoRef}
+                                    className="aspect-video w-full rounded-[18px] bg-black"
+                                    src="/gas_test.mov"
+                                    controls
+                                    playsInline
+                                    preload="metadata"
+                                    onPlay={handleDemoPlay}
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
+                                <div className="mb-4 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Demo Scope</div>
+                                <div className="space-y-3">
+                                  {activeTutorial.stats.map(([label, value]) => (
+                                    <div key={label} className="rounded-2xl bg-slate-50 px-4 py-4">
+                                      <div className="text-sm text-slate-500">{label}</div>
+                                      <div className="mt-2 text-xl font-bold text-slate-900">{value}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="mt-5 rounded-[20px] border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-relaxed text-slate-600">
+                                  원본 구글독스 취합, 제미나이 요약 생성, 마스터 독스 작성, 최종 보고서 확인까지의 실제 동작 화면을 영상으로 재생합니다.
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -715,27 +797,30 @@ const Cases = ({ progress }) => {
     <>
       <motion.section
         style={{ opacity: sectionOpacity, y: sectionY, scale: sectionScale }}
-        className="h-full w-full overflow-hidden py-16 text-slate-900"
+        className="flex h-full w-full items-center overflow-hidden py-10 text-slate-900"
       >
-        <div className="mx-auto mb-12 max-w-5xl px-4 text-center md:px-8">
-          <div className="space-y-4">
-            <h2 className="text-4xl font-bold text-slate-900 md:text-5xl">
-              우리가 만들어낸 <span className="text-gradient">변화들</span>
-            </h2>
-            <p className="mx-auto max-w-4xl text-lg leading-relaxed text-slate-600">
-              부서 곳곳의 페인포인트는 작은 자동화 조각으로 풀렸고, 그 조각들이 모여 하나의 운영 체계를 바꾸고 있습니다.
-            </p>
+        <div className="w-full">
+          <div className="mx-auto max-w-[1560px] px-4 md:px-8">
+            <div className="mb-10 text-center">
+              <div className="space-y-4">
+                <h2 className="text-4xl font-bold text-slate-900 md:text-5xl">
+                  우리가 만들어낸 <span className="text-gradient">변화들</span>
+                </h2>
+                <p className="mx-auto max-w-4xl text-lg leading-relaxed text-slate-600">
+                  부서 곳곳의 페인포인트는 작은 자동화 조각으로 풀렸고, 그 조각들이 모여 하나의 운영 체계를 바꾸고 있습니다.
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <motion.div style={{ opacity: railOpacity }} className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-slate-50 to-transparent md:w-32" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-slate-50 to-transparent md:w-32" />
-          <motion.div
-            style={{ x: trackX }}
-            className="mx-auto flex w-max gap-6 px-4 pb-6 pt-2 md:gap-8 md:px-8"
-          >
-            {cases.map((item, idx) => (
+          <motion.div style={{ opacity: railOpacity }} className="relative">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-slate-50 to-transparent md:w-32" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-slate-50 to-transparent md:w-32" />
+            <motion.div
+              style={{ x: trackX }}
+              className="mx-auto flex w-max gap-6 px-4 py-3 md:gap-8 md:px-8"
+            >
+              {cases.map((item, idx) => (
               <motion.div
                 key={item.id}
                 initial={{ opacity: 0, y: 40 }}
@@ -747,7 +832,7 @@ const Cases = ({ progress }) => {
               >
                 <div className={`absolute -inset-0.5 rounded-[28px] bg-gradient-to-r ${item.accent} opacity-0 blur transition duration-500 group-hover:opacity-25`} />
 
-                <div className="relative flex h-[420px] w-[300px] flex-col rounded-[28px] border border-slate-200 bg-white/90 p-7 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur md:w-[360px]">
+                <div className="relative flex h-[500px] w-[300px] flex-col rounded-[28px] border border-slate-200 bg-white/90 p-7 shadow-[0_20px_60px_rgba(15,23,42,0.08)] backdrop-blur md:w-[360px]">
                   <div className="mb-5 flex items-center justify-between">
                     <div className={`rounded-full bg-gradient-to-r ${item.accent} px-3 py-1 text-xs font-bold text-white shadow-sm`}>
                       {item.category}
@@ -790,15 +875,16 @@ const Cases = ({ progress }) => {
                   </div>
 
                   {item.id === 'people-ops' ? (
-                    <div className="mt-5 text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
+                    <div className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
                       Click to view demo
                     </div>
                   ) : null}
                 </div>
               </motion.div>
-            ))}
+              ))}
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </motion.section>
 
       <CaseModal item={activeCase} onClose={() => setActiveCaseId(null)} />
