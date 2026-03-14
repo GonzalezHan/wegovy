@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { BriefcaseBusiness, ChevronRight, Folder, House } from 'lucide-react';
+import { BriefcaseBusiness, ChevronRight, House, UserRound } from 'lucide-react';
 
 const StartIntro = ({ onStart }) => {
   const [isStarting, setIsStarting] = useState(false);
@@ -86,7 +86,7 @@ const StartIntro = ({ onStart }) => {
             >
               <House size={58} strokeWidth={1.8} />
             </motion.div>
-            <div className="mt-6 text-3xl font-bold text-white">{isInstalled ? '칼퇴' : '우리집'}</div>
+            <div className="mt-6 min-h-[2.25rem] text-3xl font-bold text-white">{isInstalled ? '칼퇴' : ''}</div>
           </div>
 
           <motion.div
@@ -105,7 +105,7 @@ const StartIntro = ({ onStart }) => {
             transition={{ duration: 2, times: [0, 0.84, 0.92, 1], ease: [0.22, 1, 0.36, 1] }}
             className="pointer-events-none absolute left-[26%] top-[34px] hidden h-[82px] w-[82px] items-center justify-center rounded-[26px] border border-amber-200/40 bg-amber-300 text-slate-950 shadow-[0_18px_50px_rgba(251,191,36,0.28)] md:flex"
           >
-            <Folder size={42} strokeWidth={1.8} />
+            <UserRound size={40} strokeWidth={1.9} />
           </motion.div>
         </div>
 
