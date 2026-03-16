@@ -9,9 +9,14 @@ import {
   Code2,
   Database,
   LayoutDashboard,
+  Maximize2,
+  Minimize2,
   Play,
   TrendingUp,
   X,
+  Sparkles,
+  Settings,
+  Terminal,
 } from 'lucide-react';
 
 const cases = [
@@ -209,12 +214,12 @@ const FINANCE_TUTORIALS = [
   {
     id: 'code',
     label: '코드 설계·구현',
-    helper: '각 파트별 개별 시트 데이터를 감지하고 마스터 결산 보드로 병합하는 GAS 로직을 설계하고 구현합니다.',
-    chips: ['SpreadsheetApp', 'Trigger', 'Normalization'],
+    helper: '제미나이를 활용해 코드를 생성하고, 구글 앱 스크립트에 구현하여 자동 실행 트리거를 설정합니다.',
+    chips: ['Gemini Prompt', 'GAS Project', 'Auto-Trigger'],
     stats: [
-      ['GAS 코드', '150 lines'],
-      ['API 활용', 'Sheets API'],
-      ['실행 주기', '실시간/Triggers'],
+      ['AI 활용도', 'High'],
+      ['스크립트', '150 lines'],
+      ['자동화', 'Real-time'],
     ],
   },
   {
@@ -231,28 +236,54 @@ const FINANCE_TUTORIALS = [
   {
     id: 'demo',
     label: 'Live Demo',
-    helper: '준비 중인 시연 화면입니다.',
-    chips: ['Coming Soon'],
+    helper: '실제 구글 앱 스크립트 환경과 자동화된 시트 구조를 확인합니다.',
+    chips: ['GAS Runtime', 'Google Sheets', 'Live Automation'],
+    demoUrl: 'https://drive.google.com/drive/folders/0AGUfmnGXMFogUk9PVA',
     stats: [
-      ['상태', '준비 중'],
+      ['데모 타입', '실제 환경'],
+      ['연동 서비스', 'GAS / Sheets'],
+      ['상태', 'Live'],
     ],
   },
 ];
 
 const FINANCE_CODE_LINES = [
   'function consolidateFinanceData() {',
-  '  const masterSheet = SpreadsheetApp.getActive().getSheetByName("Master");',
-  '  const sourceSheets = getSourceSheets();',
-  '  sourceSheets.forEach(sheet => {',
+  '  const master = SpreadsheetApp.getActive().getSheetByName("Master");',
+  '  const sources = getSourceSheets();',
+  '  sources.forEach(sheet => {',
   '    const data = sheet.getDataRange().getValues();',
   '    const cleaned = validateAndClean(data);',
-  '    appendDataToMaster(masterSheet, cleaned);',
+  '    appendDataToMaster(master, cleaned);',
   '  });',
   '}',
 ];
 
+const FINANCE_GEMINI_PROMPT = [
+  'User: "TF에서 분석한 아래 내용을 바탕으로 최적의 GAS 코드를 생성해 줘.\n' +
+  '1. 부서별 파편화된 소스의 정규화 파이프라인 구축\n' +
+  '2. 데이터 타입 및 필수값 누락 검증 로직 사전 수행\n' +
+  '3. 중복 행 제거 및 마스터 시트 실시간 동기화(Trigger)\n' +
+  '4. 처리 이력 및 오류 추적을 위한 감사 로그(Audit Log)"',
+  
+  'Gemini: "분석하신 전략적 요건을 확인했습니다.\n' +
+  '정합성 검증과 실시간 자동화가 통합된\n' +
+  '최적화된 Enterprise급 스크립트를 생성합니다."'
+];
+
+const FINANCE_TRIGGER_STEPS = [
+  '[GAS Project Triggers]',
+  '● 실행 함수: consolidateFinanceData',
+  '● 이벤트 소스: 스프레드시트',
+  '● 이벤트 유형: 변경 시 (On Change)',
+  '● 상태: 활성화됨 (Enabled)',
+];
+
 function CaseModal({ item, onClose }) {
   const [activeTutorialId, setActiveTutorialId] = useState('painpoint');
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [inputUrl, setInputUrl] = useState(''); // 커스텀 URL 입력 상태
+  const [isLoaded, setIsLoaded] = useState(false); // 접속 여부 상태
   const [typedCodeUnits, setTypedCodeUnits] = useState(0);
   const [visibleLogCount, setVisibleLogCount] = useState(0);
   const [completedStatusCount, setCompletedStatusCount] = useState(0);
@@ -262,6 +293,9 @@ function CaseModal({ item, onClose }) {
   useEffect(() => {
     if (item) {
       setActiveTutorialId('painpoint');
+      setIsFullScreen(false); // 모달이 바뀔 때 초기화
+      setInputUrl('');
+      setIsLoaded(false);
     }
   }, [item]);
 
@@ -270,6 +304,23 @@ function CaseModal({ item, onClose }) {
   
   const currentTutorials = isPeopleOps ? PEOPLE_TUTORIALS : isFinanceOps ? FINANCE_TUTORIALS : [];
   const currentCodeLines = isPeopleOps ? PEOPLE_CODE_LINES : isFinanceOps ? FINANCE_CODE_LINES : [];
+
+  // 탭 변경 시 해당 데모 URL로 inputUrl 초기화
+  useEffect(() => {
+    if (activeTutorialId === 'demo' && isFinanceOps) {
+      setInputUrl(currentTutorials.find(t => t.id === 'demo')?.demoUrl || '');
+      setIsLoaded(false); // 탭 바뀔 때마다 로드 상태 초기화
+    }
+  }, [activeTutorialId, isFinanceOps, currentTutorials]);
+
+  const handleUrlSubmit = () => {
+    let url = inputUrl.trim();
+    if (url && !url.startsWith('http')) {
+      url = 'https://' + url;
+    }
+    setInputUrl(url);
+    setIsLoaded(true);
+  };
 
   useEffect(() => {
     if (!item || (!isPeopleOps && !isFinanceOps)) {
@@ -284,10 +335,13 @@ function CaseModal({ item, onClose }) {
     const cleanups = [];
 
     if (activeTutorialId === 'code') {
-      const totalUnits = currentCodeLines.reduce((sum, line) => sum + line.length + 6, 0);
+      const totalLines = isFinanceOps 
+        ? Math.max(FINANCE_CODE_LINES.length, FINANCE_GEMINI_PROMPT.length) + 10
+        : currentCodeLines.reduce((sum, line) => sum + line.length + 6, 0);
+      
       const intervalId = window.setInterval(() => {
         setTypedCodeUnits((prev) => {
-          if (prev >= totalUnits) {
+          if (prev >= 1000) { // Max units for simulation
             window.clearInterval(intervalId);
             return prev;
           }
@@ -306,29 +360,10 @@ function CaseModal({ item, onClose }) {
       }
     }
 
-    if (activeTutorialId === 'run') {
-      const logLines = isPeopleOps ? PEOPLE_LOG_LINES : ['[Finance] Starting consolidation...', '[Finance] Validating columns...', '[Finance] Merging rows...', '[Finance] Master updated.'];
-      const statusSteps = isPeopleOps ? PEOPLE_STATUS_STEPS : ['시트 감지', '데이터 클렌징', '중복 제거', '마스터 반영'];
-      
-      logLines.forEach((_, index) => {
-        const timeoutId = window.setTimeout(() => {
-          setVisibleLogCount(index + 1);
-        }, 350 + index * 420);
-        cleanups.push(() => window.clearTimeout(timeoutId));
-      });
-
-      statusSteps.forEach((_, index) => {
-        const timeoutId = window.setTimeout(() => {
-          setCompletedStatusCount(index + 1);
-        }, 1400 + index * 360);
-        cleanups.push(() => window.clearTimeout(timeoutId));
-      });
-    }
-
     return () => {
       cleanups.forEach((cleanup) => cleanup());
     };
-  }, [activeTutorialId, item, isPeopleOps, isFinanceOps]);
+  }, [activeTutorialId, item, isPeopleOps, isFinanceOps, currentCodeLines]);
 
   const activeTutorial =
     currentTutorials.find((tutorial) => tutorial.id === activeTutorialId) ?? currentTutorials[0];
@@ -348,14 +383,18 @@ function CaseModal({ item, onClose }) {
     <AnimatePresence>
       {item && (isPeopleOps || isFinanceOps) ? (
         <motion.div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 px-4 py-8 backdrop-blur-sm"
+          className={`fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 backdrop-blur-sm ${isFullScreen ? 'p-0' : 'px-4 py-8'}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
+          onClick={isFullScreen ? undefined : onClose}
         >
           <motion.div
-            className={`w-full rounded-[32px] border border-slate-200 bg-[#f8fafc] p-6 shadow-[0_30px_100px_rgba(15,23,42,0.3)] max-w-6xl`}
+            className={`w-full bg-[#f8fafc] shadow-[0_30px_100px_rgba(15,23,42,0.3)] transition-all duration-300 ${
+              isFullScreen 
+                ? 'fixed inset-0 z-[110] h-screen overflow-y-auto rounded-none p-8' 
+                : 'relative rounded-[32px] border border-slate-200 p-6 max-w-6xl'
+            }`}
             initial={{ opacity: 0, y: 20, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -402,7 +441,7 @@ function CaseModal({ item, onClose }) {
               </div>
 
               <div className="grid gap-5">
-                <div className="relative min-h-[520px] overflow-hidden rounded-[28px] border border-slate-200 bg-[#f7f8fb]">
+                <div className={`relative overflow-hidden rounded-[28px] border border-slate-200 bg-[#f7f8fb] transition-all duration-300 ${isFullScreen ? 'min-h-[70vh]' : 'min-h-[520px]'}`}>
                   <div className="absolute inset-x-0 top-0 flex items-center justify-between border-b border-slate-200 bg-white/90 px-5 py-3">
                     <div className="flex items-center gap-2">
                       <span className="h-3 w-3 rounded-full bg-slate-300" />
@@ -412,72 +451,163 @@ function CaseModal({ item, onClose }) {
                     <div className="rounded-full bg-slate-100 px-6 py-2 text-sm font-semibold text-slate-500">
                       {activeTutorial?.label}
                     </div>
-                    <div className="text-sm font-semibold text-slate-400">확장</div>
+                    <button
+                      type="button"
+                      onClick={() => setIsFullScreen(!isFullScreen)}
+                      className="flex items-center gap-1.5 text-sm font-bold text-slate-500 transition-colors hover:text-slate-900"
+                    >
+                      {isFullScreen ? (
+                        <>
+                          <Minimize2 size={16} />
+                          축소
+                        </>
+                      ) : (
+                        <>
+                          <Maximize2 size={16} />
+                          확장
+                        </>
+                      )}
+                    </button>
                   </div>
 
                   <div className="h-full pt-[72px]">
                     {activeTutorial?.id === 'code' ? (
-                      <div className="grid h-full grid-cols-[220px_minmax(0,1fr)]">
-                        <div className="border-r border-slate-200 bg-slate-950 p-5 text-white">
-                          <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-sky-300">
-                            <Code2 size={16} />
-                            {isFinanceOps ? 'finance-consolidation.gs' : 'weekly-issue-report.gs'}
-                          </div>
-                          <div className="space-y-2 text-xs text-white/55">
-                            {activeTutorial.chips.map((label) => (
-                              <div key={label} className="rounded-xl bg-white/5 px-3 py-2">
-                                {label}
+                      isFinanceOps ? (
+                        <div className="grid h-full grid-cols-2 gap-6 p-6">
+                          {/* Left Panel: Gemini AI */}
+                          <div className="flex flex-col rounded-3xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
+                            <div className="flex items-center justify-between bg-slate-900/80 px-5 py-4 border-b border-white/5">
+                              <div className="flex items-center gap-2 text-sm font-bold text-violet-400">
+                                <Sparkles size={16} className="animate-pulse" />
+                                Gemini Prompting
                               </div>
-                            ))}
+                              <div className="rounded-full bg-violet-500/10 px-3 py-1 text-[10px] font-black text-violet-400 uppercase tracking-tighter">AI GEN</div>
+                            </div>
+                            <div className="p-6 space-y-4 font-mono text-[13px] leading-relaxed text-slate-300 overflow-y-auto">
+                              {FINANCE_GEMINI_PROMPT.map((line, idx) => {
+                                const prefixUnits = FINANCE_GEMINI_PROMPT.slice(0, idx).reduce((sum, l) => sum + l.length + 10, 0);
+                                const isVisible = typedCodeUnits > prefixUnits;
+                                const currentVisible = Math.min(typedCodeUnits - prefixUnits, line.length);
+                                
+                                return (
+                                  <motion.div 
+                                    key={idx} 
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: isVisible ? 1 : 0 }}
+                                    className={`${line.startsWith('User:') ? 'text-sky-300' : 'text-slate-200 bg-white/5 p-3 rounded-xl'}`}
+                                  >
+                                    {isVisible ? line.slice(0, currentVisible) : ''}
+                                  </motion.div>
+                                );
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Right Panel: GAS Runtime & Trigger */}
+                          <div className="flex flex-col rounded-3xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
+                            <div className="flex items-center justify-between bg-slate-900/80 px-5 py-4 border-b border-white/5">
+                              <div className="flex items-center gap-2 text-sm font-bold text-sky-400">
+                                <Code2 size={16} />
+                                GAS Project Implementation
+                              </div>
+                              <div className="rounded-full bg-sky-500/10 px-3 py-1 text-[10px] font-black text-sky-400 uppercase tracking-tighter">LIVE</div>
+                            </div>
+                            <div className="p-6 flex-1 font-mono text-[12px] leading-6 text-emerald-400/90 overflow-hidden">
+                              <div className="mb-4 text-slate-500">// finance-consolidation.gs</div>
+                              {FINANCE_CODE_LINES.map((line, idx) => {
+                                const prefixUnits = FINANCE_CODE_LINES.slice(0, idx).reduce((sum, l) => sum + l.length + 5, 0) + 150; // Delay for Gemini start
+                                const isVisible = typedCodeUnits > prefixUnits;
+                                const currentVisible = Math.min(typedCodeUnits - prefixUnits, line.length);
+                                
+                                return (
+                                  <div key={idx} className="flex gap-4">
+                                    <span className="w-4 text-slate-700">{idx + 1}</span>
+                                    <span>{isVisible ? line.slice(0, currentVisible) : ''}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            {/* Trigger Section */}
+                            <motion.div 
+                              initial={{ y: 50, opacity: 0 }}
+                              animate={{ y: typedCodeUnits > 600 ? 0 : 50, opacity: typedCodeUnits > 600 ? 1 : 0 }}
+                              className="mt-auto border-t border-white/5 bg-slate-900/50 p-5"
+                            >
+                              <div className="flex items-center gap-2 text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3">
+                                <Settings size={14} className="animate-spin-slow" />
+                                Trigger Deployment
+                              </div>
+                              <div className="space-y-1 font-mono text-[11px] text-emerald-500/70">
+                                {FINANCE_TRIGGER_STEPS.map((step, idx) => (
+                                  <div key={idx}>{step}</div>
+                                ))}
+                              </div>
+                            </motion.div>
                           </div>
                         </div>
-
-                        <div className="relative p-6">
-                          <div className="mb-4 flex flex-wrap gap-3">
-                            {activeTutorial.chips.map((chip) => (
-                              <div key={chip} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600">
-                                {chip}
-                              </div>
-                            ))}
-                          </div>
-
-                          <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 p-5 shadow-sm">
-                            <div className="mb-4 flex items-center justify-between">
-                              <div className="text-sm font-semibold text-white/80">{isFinanceOps ? '데이터 취합 스크립트' : 'Weekly Issue 분석 스크립트'}</div>
-                              <div className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">EDIT MODE</div>
+                      ) : (
+                        <div className="grid h-full grid-cols-[220px_minmax(0,1fr)]">
+                          <div className="border-r border-slate-200 bg-slate-950 p-5 text-white">
+                            <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-sky-300">
+                              <Code2 size={16} />
+                              weekly-issue-report.gs
                             </div>
-                            <div className="space-y-2 font-mono text-[13px] leading-7 text-slate-200">
-                              {currentCodeLines.map((line, idx) => (
-                                <div key={idx} className="flex gap-4">
-                                  <span className="w-6 text-right text-slate-500">{idx + 1}</span>
-                                  <span>
-                                    {(() => {
-                                      const prefixUnits = currentCodeLines
-                                        .slice(0, idx)
-                                        .reduce((sum, currentLine) => sum + currentLine.length + 6, 0);
-                                      const localUnits = Math.max(typedCodeUnits - prefixUnits, 0);
-                                      const visibleChars = Math.min(localUnits, line.length);
-                                      const showCursor = localUnits >= 0 && localUnits < line.length + 6;
-                                      return (
-                                        <>
-                                          {line.slice(0, visibleChars)}
-                                          {showCursor ? (
-                                            <motion.span
-                                              animate={{ opacity: [1, 0, 1] }}
-                                              transition={{ duration: 0.8, repeat: Infinity }}
-                                              className="ml-[1px] inline-block h-[1.1em] w-[2px] translate-y-[2px] bg-cyan-300 align-middle"
-                                            />
-                                          ) : null}
-                                        </>
-                                      );
-                                    })()}
-                                  </span>
+                            <div className="space-y-2 text-xs text-white/55">
+                              {activeTutorial.chips.map((label) => (
+                                <div key={label} className="rounded-xl bg-white/5 px-3 py-2">
+                                  {label}
                                 </div>
                               ))}
                             </div>
                           </div>
+
+                          <div className="relative p-6">
+                            <div className="mb-4 flex flex-wrap gap-3">
+                              {activeTutorial.chips.map((chip) => (
+                                <div key={chip} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600">
+                                  {chip}
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 p-5 shadow-sm">
+                              <div className="mb-4 flex items-center justify-between">
+                                <div className="text-sm font-semibold text-white/80">Weekly Issue 분석 스크립트</div>
+                                <div className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">EDIT MODE</div>
+                              </div>
+                              <div className="space-y-2 font-mono text-[13px] leading-7 text-slate-200">
+                                {PEOPLE_CODE_LINES.map((line, idx) => (
+                                  <div key={idx} className="flex gap-4">
+                                    <span className="w-6 text-right text-slate-500">{idx + 1}</span>
+                                    <span>
+                                      {(() => {
+                                        const prefixUnits = PEOPLE_CODE_LINES
+                                          .slice(0, idx)
+                                          .reduce((sum, currentLine) => sum + currentLine.length + 6, 0);
+                                        const localUnits = Math.max(typedCodeUnits - prefixUnits, 0);
+                                        const visibleChars = Math.min(localUnits, line.length);
+                                        const showCursor = localUnits >= 0 && localUnits < line.length + 6;
+                                        return (
+                                          <>
+                                            {line.slice(0, visibleChars)}
+                                            {showCursor ? (
+                                              <motion.span
+                                                animate={{ opacity: [1, 0, 1] }}
+                                                transition={{ duration: 0.8, repeat: Infinity }}
+                                                className="ml-[1px] inline-block h-[1.1em] w-[2px] translate-y-[2px] bg-cyan-300 align-middle"
+                                              />
+                                            ) : null}
+                                          </>
+                                        );
+                                      })()}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )
                     ) : activeTutorial?.id === 'demo' ? (
                       <div className="relative p-6">
                         <div className="mb-4 flex flex-wrap gap-3">
@@ -522,10 +652,96 @@ function CaseModal({ item, onClose }) {
                             </div>
                           </div>
                         ) : (
-                          <div className="flex flex-col items-center justify-center min-h-[400px]">
-                            <Play size={48} className="text-slate-200 mb-4" />
-                            <div className="text-xl font-bold text-slate-400">Live Demo 준비 중</div>
-                            <div className="text-slate-400 mt-2">실제 시연 영상이 곧 업데이트될 예정입니다.</div>
+                          <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+                            <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 shadow-sm">
+                              <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 text-white">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-sky-300">
+                                  <LayoutDashboard size={16} />
+                                  Live Web Environment
+                                </div>
+                                <div className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">INTERACTIVE DEMO</div>
+                              </div>
+
+                              {/* Browser Address Bar */}
+                              <div className="flex items-center gap-3 border-b border-white/10 bg-slate-900 px-4 py-2.5">
+                                <div className="flex gap-1.5">
+                                  <div className="h-2.5 w-2.5 rounded-full bg-slate-700" />
+                                  <div className="h-2.5 w-2.5 rounded-full bg-slate-700" />
+                                  <div className="h-2.5 w-2.5 rounded-full bg-slate-700" />
+                                </div>
+                                <div className="flex flex-1 items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 border border-white/5">
+                                  <Code2 size={14} className="text-slate-500" />
+                                  <input 
+                                    type="text" 
+                                    value={inputUrl}
+                                    onChange={(e) => setInputUrl(e.target.value)}
+                                    placeholder="Enter URL and press Enter (e.g., google.com)"
+                                    className="w-full bg-transparent text-xs text-slate-300 outline-none placeholder:text-slate-600"
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter') {
+                                        handleUrlSubmit();
+                                      }
+                                    }}
+                                  />
+                                </div>
+                                <button 
+                                  className="rounded-md bg-sky-500/20 px-3 py-1.5 text-xs font-bold text-sky-400 transition-colors hover:bg-sky-500/30"
+                                  onClick={handleUrlSubmit}
+                                >
+                                  {isLoaded ? 'RELOAD' : 'GO'}
+                                </button>
+                              </div>
+
+                              <div className="relative aspect-video w-full bg-slate-950/95 flex flex-col items-center justify-center p-8 text-center">
+                                {/* Ambient Glow Background */}
+                                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px]" />
+                                </div>
+
+                                <div className="relative z-10">
+                                  <div className="mb-6 mx-auto flex h-24 w-24 items-center justify-center rounded-[32px] bg-white/5 border border-white/10 text-sky-400 shadow-2xl">
+                                    <LayoutDashboard size={48} strokeWidth={1.5} />
+                                  </div>
+                                  <h4 className="mb-3 text-2xl font-bold text-white tracking-tight">외부 데모 환경 연결</h4>
+                                  <p className="mb-10 max-w-sm text-base text-slate-400 leading-relaxed">
+                                    보안 정책 및 원활한 사용 환경을 위해<br/>데모 페이지를 <span className="text-sky-400 font-semibold">새 브라우저 창</span>에서 엽니다.
+                                  </p>
+                                  
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      let url = inputUrl.trim();
+                                      if (url && !url.startsWith('http')) {
+                                        url = 'https://' + url;
+                                      }
+                                      window.open(url, '_blank', 'noopener,noreferrer');
+                                    }}
+                                    className="group relative flex items-center gap-4 rounded-2xl bg-white px-10 py-5 text-xl font-black text-slate-950 shadow-2xl transition-all hover:scale-[1.03] active:scale-95 hover:bg-sky-50"
+                                  >
+                                    <Play size={22} className="fill-slate-950" />
+                                    데모 환경 접속하기
+                                    <div className="absolute -inset-0.5 -z-10 rounded-2xl bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 blur transition group-hover:opacity-30" />
+                                  </button>
+                                  
+                                  <div className="mt-8 flex items-center justify-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-widest">
+                                    <span className="h-1 w-1 rounded-full bg-slate-700" />
+                                    External Environment
+                                    <span className="h-1 w-1 rounded-full bg-slate-700" />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
+                              <div className="mb-4 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Demo Environment</div>
+                              <div className="space-y-3">
+                                {activeTutorial?.stats.map(([label, value]) => (
+                                  <div key={label} className="rounded-2xl bg-slate-50 px-4 py-4">
+                                    <div className="text-sm text-slate-500">{label}</div>
+                                    <div className="mt-2 text-xl font-bold text-slate-900">{value}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
