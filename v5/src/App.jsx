@@ -38,19 +38,18 @@ function App() {
   // 0.0 -> 0.15: Dark (Problem, Agitation)
   // 0.15 -> 0.22: Transition to Light (Solution)
   // 0.22 -> 0.65: Light (GasIntro, Phase3, Cases, Interviews)
-  // 0.65 -> 0.75: Transition to Dark (Roadmap)
-  // 0.75 -> 0.9: Dark
-  // 0.9 -> 0.95: Transition to Navy (ContactUs)
+  // 0.65 -> 0.75: Transition to Navy (Roadmap, CTA, ContactUs)
+  // 0.75 -> 1.0: Navy
   const backgroundColor = useTransform(
     scrollYProgress,
     [0.08, 0.09, 0.65, 0.75, 0.9, 0.95],
-    ['#0a0a0a', '#ffffff', '#ffffff', '#050816', '#050816', '#284283']
+    ['#0a0a0a', '#ffffff', '#ffffff', '#284283', '#284283', '#284283']
   );
   
   const textColor = useTransform(
     scrollYProgress,
     [0.08, 0.09, 0.65, 0.75, 0.9, 0.95],
-    ['#cecece', '#0f172a', '#0f172a', '#e2e8f0', '#f8fafc', '#ffffff']
+    ['#cecece', '#0f172a', '#0f172a', '#f8fafc', '#f8fafc', '#ffffff']
   );
 
   // Simple routing for test page
