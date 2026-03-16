@@ -16,13 +16,14 @@ import {
   X,
   Sparkles,
   Settings,
-  Terminal,
+  ShieldCheck,
 } from 'lucide-react';
 
 const cases = [
   {
     id: 'people-ops',
     category: 'Issue Analysis',
+    hasDemo: true,
     title: '시너지지원 Weekly Issue',
     description: '약 10개의 구글독스 Weekly Issue를 자동 취합하고, 제미나이 요약을 더해 마스터 독스에 최종 분석 보고서를 생성합니다.',
     highlight: '문서 취합과 요약 분석 자동화',
@@ -42,7 +43,8 @@ const cases = [
   {
     id: 'finance-ops',
     category: 'Finance Ops',
-    title: '모달창 팝업 테스트(클릭)',
+    hasDemo: true,
+    title: '결산 데이터 자동 취합',
     description: '각 파트에서 개별적으로 작성하던 엑셀 데이터를 GAS를 통해 하나의 시트로 자동 병합 및 검증합니다.',
     highlight: '보고 전 취합 공수 대폭 절감',
     accent: 'from-sky-500 to-blue-600',
@@ -86,7 +88,7 @@ const cases = [
     accent: 'from-violet-500 to-fuchsia-500',
     tags: ['API', 'Database', 'Reporting'],
     metrics: [
-      { label: '휴먼 에러', value: '0', icon: AlertTriangle, color: 'text-amber-500' },
+      { label: '휴먼 에러', value: '0', icon: ShieldCheck, color: 'text-green-600' },
       { label: '데이터 최신성', value: '실시간', icon: Activity, color: 'text-purple-600' },
     ],
     demoTitle: '시연 화면 03. 환율 데이터 자동 수집',
@@ -164,28 +166,6 @@ const PEOPLE_CODE_LINES = [
   '  const executive = summarizeByCompanyWithGemini(merged);',
   '  writeMasterDoc({ keySummary, executive, merged });',
   '}',
-];
-
-const PEOPLE_LOG_LINES = [
-  '[08:00:01] trigger started: buildWeeklyIssueReport',
-  '[08:00:08] source docs loaded: 10',
-  '[08:00:17] Gemini connected: Analyzing content...',
-  '[08:00:26] Gemini generated: Executive Summary',
-  '[08:00:38] master docs updated and shared',
-];
-
-const PEOPLE_STATUS_STEPS = [
-  '원본 구글독스 수집',
-  '회사별 이슈 병합',
-  '제미나이 요약 생성',
-  '마스터 독스 작성',
-];
-
-const PEOPLE_OUTPUT_ITEMS = [
-  'Key Issue Summary 5개 자동 생성',
-  '각사 Executive Summary 자동 생성',
-  'Weekly Issue 원문 취합 및 정렬',
-  '마스터 독스 최종 보고서 공유',
 ];
 
 const FINANCE_TUTORIALS = [
@@ -285,8 +265,6 @@ function CaseModal({ item, onClose }) {
   const [inputUrl, setInputUrl] = useState(''); // 커스텀 URL 입력 상태
   const [isLoaded, setIsLoaded] = useState(false); // 접속 여부 상태
   const [typedCodeUnits, setTypedCodeUnits] = useState(0);
-  const [visibleLogCount, setVisibleLogCount] = useState(0);
-  const [completedStatusCount, setCompletedStatusCount] = useState(0);
   const [outputRevealCount, setOutputRevealCount] = useState(0);
   const demoVideoRef = useRef(null);
 
@@ -328,17 +306,11 @@ function CaseModal({ item, onClose }) {
     }
 
     setTypedCodeUnits(0);
-    setVisibleLogCount(0);
-    setCompletedStatusCount(0);
     setOutputRevealCount(0);
 
     const cleanups = [];
 
     if (activeTutorialId === 'code') {
-      const totalLines = isFinanceOps 
-        ? Math.max(FINANCE_CODE_LINES.length, FINANCE_GEMINI_PROMPT.length) + 10
-        : currentCodeLines.reduce((sum, line) => sum + line.length + 6, 0);
-      
       const intervalId = window.setInterval(() => {
         setTypedCodeUnits((prev) => {
           if (prev >= 1000) { // Max units for simulation
@@ -380,9 +352,10 @@ function CaseModal({ item, onClose }) {
   };
 
   return (
-    <AnimatePresence>
+    <AnimatePresence mode="wait">
       {item && (isPeopleOps || isFinanceOps) ? (
         <motion.div
+          key={item.id}
           className={`fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 backdrop-blur-sm ${isFullScreen ? 'p-0' : 'px-4 py-8'}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -392,7 +365,7 @@ function CaseModal({ item, onClose }) {
           <motion.div
             className={`w-full bg-[#f8fafc] shadow-[0_30px_100px_rgba(15,23,42,0.3)] transition-all duration-300 ${
               isFullScreen 
-                ? 'fixed inset-0 z-[110] h-screen overflow-y-auto rounded-none p-8' 
+                ? 'fixed inset-0 z-[110] h-screen overflow-y-auto rounded-none' 
                 : 'relative rounded-[32px] border border-slate-200 p-6 max-w-6xl'
             }`}
             initial={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -401,25 +374,26 @@ function CaseModal({ item, onClose }) {
             transition={{ duration: 0.22 }}
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="mb-6 flex items-start justify-between gap-6">
+            <div className={`flex items-start justify-between gap-6 ${isFullScreen ? 'sticky top-0 z-20 bg-[#f8fafc]/80 backdrop-blur-md px-8 py-6 border-b border-slate-200' : 'mb-6'}`}>
               <div className="flex-1">
-                <div className={`mx-auto inline-flex rounded-full bg-gradient-to-r ${item.accent} px-3 py-1 text-xs font-bold text-white shadow-sm`}>
+                <div className={`inline-flex rounded-full bg-gradient-to-r ${item.accent} px-3 py-1 text-xs font-bold text-white shadow-sm`}>
                   {item.category}
                 </div>
               </div>
               <button
                 type="button"
                 onClick={onClose}
+                aria-label="모달 닫기"
                 className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition-colors hover:text-slate-900"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="mb-6 flex flex-wrap justify-center gap-3">
+            <div className={`flex flex-wrap justify-center gap-3 ${isFullScreen ? 'px-8 py-6' : 'mb-6'}`}>
               {currentTutorials.map((tutorial, index) => (
                 <button
-                  key={tutorial.id}
+                  key={`${item.id}-${tutorial.id}`}
                   type="button"
                   onClick={() => setActiveTutorialId(tutorial.id)}
                   className={`rounded-full border px-4 py-2 text-sm font-semibold transition-all ${
@@ -433,370 +407,378 @@ function CaseModal({ item, onClose }) {
               ))}
             </div>
 
-            <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="mb-4 flex items-center justify-between rounded-[22px] bg-slate-100 px-5 py-4">
-                <div>
-                  <div className="mt-1 text-lg font-bold text-slate-900">{activeTutorial?.label}</div>
-                </div>
-              </div>
-
-              <div className="grid gap-5">
-                <div className={`relative overflow-hidden rounded-[28px] border border-slate-200 bg-[#f7f8fb] transition-all duration-300 ${isFullScreen ? 'min-h-[70vh]' : 'min-h-[520px]'}`}>
-                  <div className="absolute inset-x-0 top-0 flex items-center justify-between border-b border-slate-200 bg-white/90 px-5 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className="h-3 w-3 rounded-full bg-slate-300" />
-                      <span className="h-3 w-3 rounded-full bg-slate-300" />
-                      <span className="h-3 w-3 rounded-full bg-slate-300" />
-                    </div>
-                    <div className="rounded-full bg-slate-100 px-6 py-2 text-sm font-semibold text-slate-500">
-                      {activeTutorial?.label}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setIsFullScreen(!isFullScreen)}
-                      className="flex items-center gap-1.5 text-sm font-bold text-slate-500 transition-colors hover:text-slate-900"
-                    >
-                      {isFullScreen ? (
-                        <>
-                          <Minimize2 size={16} />
-                          축소
-                        </>
-                      ) : (
-                        <>
-                          <Maximize2 size={16} />
-                          확장
-                        </>
-                      )}
-                    </button>
+            <div className={`${isFullScreen ? 'px-8 pb-12' : ''}`}>
+              <div className="rounded-[30px] border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="mb-4 flex items-center justify-between rounded-[22px] bg-slate-100 px-5 py-4">
+                  <div>
+                    <div className="mt-1 text-lg font-bold text-slate-900">{activeTutorial?.label}</div>
                   </div>
+                </div>
 
-                  <div className="h-full pt-[72px]">
-                    {activeTutorial?.id === 'code' ? (
-                      isFinanceOps ? (
-                        <div className="grid h-full grid-cols-2 gap-6 p-6">
-                          {/* Left Panel: Gemini AI */}
-                          <div className="flex flex-col rounded-3xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
-                            <div className="flex items-center justify-between bg-slate-900/80 px-5 py-4 border-b border-white/5">
-                              <div className="flex items-center gap-2 text-sm font-bold text-violet-400">
-                                <Sparkles size={16} className="animate-pulse" />
-                                Gemini Prompting
-                              </div>
-                              <div className="rounded-full bg-violet-500/10 px-3 py-1 text-[10px] font-black text-violet-400 uppercase tracking-tighter">AI GEN</div>
-                            </div>
-                            <div className="p-6 space-y-4 font-mono text-[13px] leading-relaxed text-slate-300 overflow-y-auto">
-                              {FINANCE_GEMINI_PROMPT.map((line, idx) => {
-                                const prefixUnits = FINANCE_GEMINI_PROMPT.slice(0, idx).reduce((sum, l) => sum + l.length + 10, 0);
-                                const isVisible = typedCodeUnits > prefixUnits;
-                                const currentVisible = Math.min(typedCodeUnits - prefixUnits, line.length);
-                                
-                                return (
-                                  <motion.div 
-                                    key={idx} 
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: isVisible ? 1 : 0 }}
-                                    className={`${line.startsWith('User:') ? 'text-sky-300' : 'text-slate-200 bg-white/5 p-3 rounded-xl'}`}
-                                  >
-                                    {isVisible ? line.slice(0, currentVisible) : ''}
-                                  </motion.div>
-                                );
-                              })}
-                            </div>
-                          </div>
+                <div className="grid gap-5">
+                  <div className={`relative overflow-hidden rounded-[28px] border border-slate-200 bg-[#f7f8fb] transition-all duration-300 ${isFullScreen ? 'min-h-[70vh]' : 'min-h-[520px]'}`}>
+                    <div className="absolute inset-x-0 top-0 flex items-center justify-between border-b border-slate-200 bg-white/90 px-5 py-3 z-10">
+                      <div className="flex items-center gap-2">
+                        <span className="h-3 w-3 rounded-full bg-slate-300" />
+                        <span className="h-3 w-3 rounded-full bg-slate-300" />
+                        <span className="h-3 w-3 rounded-full bg-slate-300" />
+                      </div>
+                      <div className="rounded-full bg-slate-100 px-6 py-2 text-sm font-semibold text-slate-500">
+                        {activeTutorial?.label}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsFullScreen(!isFullScreen)}
+                        aria-label={isFullScreen ? "축소" : "확장"}
+                        className="flex items-center gap-1.5 text-sm font-bold text-slate-500 transition-colors hover:text-slate-900"
+                      >
+                        {isFullScreen ? (
+                          <>
+                            <Minimize2 size={16} />
+                            축소
+                          </>
+                        ) : (
+                          <>
+                            <Maximize2 size={16} />
+                            확장
+                          </>
+                        )}
+                      </button>
+                    </div>
 
-                          {/* Right Panel: GAS Runtime & Trigger */}
-                          <div className="flex flex-col rounded-3xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
-                            <div className="flex items-center justify-between bg-slate-900/80 px-5 py-4 border-b border-white/5">
-                              <div className="flex items-center gap-2 text-sm font-bold text-sky-400">
-                                <Code2 size={16} />
-                                GAS Project Implementation
-                              </div>
-                              <div className="rounded-full bg-sky-500/10 px-3 py-1 text-[10px] font-black text-sky-400 uppercase tracking-tighter">LIVE</div>
-                            </div>
-                            <div className="p-6 flex-1 font-mono text-[12px] leading-6 text-emerald-400/90 overflow-hidden">
-                              <div className="mb-4 text-slate-500">// finance-consolidation.gs</div>
-                              {FINANCE_CODE_LINES.map((line, idx) => {
-                                const prefixUnits = FINANCE_CODE_LINES.slice(0, idx).reduce((sum, l) => sum + l.length + 5, 0) + 150; // Delay for Gemini start
-                                const isVisible = typedCodeUnits > prefixUnits;
-                                const currentVisible = Math.min(typedCodeUnits - prefixUnits, line.length);
-                                
-                                return (
-                                  <div key={idx} className="flex gap-4">
-                                    <span className="w-4 text-slate-700">{idx + 1}</span>
-                                    <span>{isVisible ? line.slice(0, currentVisible) : ''}</span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                            {/* Trigger Section */}
-                            <motion.div 
-                              initial={{ y: 50, opacity: 0 }}
-                              animate={{ y: typedCodeUnits > 600 ? 0 : 50, opacity: typedCodeUnits > 600 ? 1 : 0 }}
-                              className="mt-auto border-t border-white/5 bg-slate-900/50 p-5"
-                            >
-                              <div className="flex items-center gap-2 text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3">
-                                <Settings size={14} className="animate-spin-slow" />
-                                Trigger Deployment
-                              </div>
-                              <div className="space-y-1 font-mono text-[11px] text-emerald-500/70">
-                                {FINANCE_TRIGGER_STEPS.map((step, idx) => (
-                                  <div key={idx}>{step}</div>
-                                ))}
-                              </div>
-                            </motion.div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="grid h-full grid-cols-[220px_minmax(0,1fr)]">
-                          <div className="border-r border-slate-200 bg-slate-950 p-5 text-white">
-                            <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-sky-300">
-                              <Code2 size={16} />
-                              weekly-issue-report.gs
-                            </div>
-                            <div className="space-y-2 text-xs text-white/55">
-                              {activeTutorial.chips.map((label) => (
-                                <div key={label} className="rounded-xl bg-white/5 px-3 py-2">
-                                  {label}
+                    <div className="h-full pt-[72px]">
+                      {activeTutorial?.id === 'code' ? (
+                        isFinanceOps ? (
+                          <div className="grid h-full grid-cols-2 gap-6 p-6">
+                            {/* Left Panel: Gemini AI */}
+                            <div className="flex flex-col rounded-3xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
+                              <div className="flex items-center justify-between bg-slate-900/80 px-5 py-4 border-b border-white/5">
+                                <div className="flex items-center gap-2 text-sm font-bold text-violet-400">
+                                  <Sparkles size={16} className="animate-pulse" />
+                                  Gemini Prompting
                                 </div>
-                              ))}
+                                <div className="rounded-full bg-violet-500/10 px-3 py-1 text-[10px] font-black text-violet-400 uppercase tracking-tighter">AI GEN</div>
+                              </div>
+                              <div className="p-6 space-y-4 font-mono text-[13px] leading-relaxed text-slate-300 overflow-y-auto">
+                                {FINANCE_GEMINI_PROMPT.map((line, idx) => {
+                                  const prefixUnits = FINANCE_GEMINI_PROMPT.slice(0, idx).reduce((sum, l) => sum + l.length + 10, 0);
+                                  const isVisible = typedCodeUnits > prefixUnits;
+                                  const currentVisible = Math.min(typedCodeUnits - prefixUnits, line.length);
+                                  
+                                  return (
+                                    <motion.div 
+                                      key={`${item.id}-gemini-${idx}`} 
+                                      initial={{ opacity: 0 }}
+                                      animate={{ opacity: isVisible ? 1 : 0 }}
+                                      className={`${line.startsWith('User:') ? 'text-sky-300' : 'text-slate-200 bg-white/5 p-3 rounded-xl'}`}
+                                    >
+                                      {isVisible ? line.slice(0, currentVisible) : ''}
+                                    </motion.div>
+                                  );
+                                })}
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="relative p-6">
-                            <div className="mb-4 flex flex-wrap gap-3">
-                              {activeTutorial.chips.map((chip) => (
-                                <div key={chip} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600">
-                                  {chip}
+                            {/* Right Panel: GAS Runtime & Trigger */}
+                            <div className="flex flex-col rounded-3xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
+                              <div className="flex items-center justify-between bg-slate-900/80 px-5 py-4 border-b border-white/5">
+                                <div className="flex items-center gap-2 text-sm font-bold text-sky-400">
+                                  <Code2 size={16} />
+                                  GAS Project Implementation
                                 </div>
-                              ))}
-                            </div>
-
-                            <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 p-5 shadow-sm">
-                              <div className="mb-4 flex items-center justify-between">
-                                <div className="text-sm font-semibold text-white/80">Weekly Issue 분석 스크립트</div>
-                                <div className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">EDIT MODE</div>
+                                <div className="rounded-full bg-sky-500/10 px-3 py-1 text-[10px] font-black text-sky-400 uppercase tracking-tighter">LIVE</div>
                               </div>
-                              <div className="space-y-2 font-mono text-[13px] leading-7 text-slate-200">
-                                {PEOPLE_CODE_LINES.map((line, idx) => (
-                                  <div key={idx} className="flex gap-4">
-                                    <span className="w-6 text-right text-slate-500">{idx + 1}</span>
-                                    <span>
-                                      {(() => {
-                                        const prefixUnits = PEOPLE_CODE_LINES
-                                          .slice(0, idx)
-                                          .reduce((sum, currentLine) => sum + currentLine.length + 6, 0);
-                                        const localUnits = Math.max(typedCodeUnits - prefixUnits, 0);
-                                        const visibleChars = Math.min(localUnits, line.length);
-                                        const showCursor = localUnits >= 0 && localUnits < line.length + 6;
-                                        return (
-                                          <>
-                                            {line.slice(0, visibleChars)}
-                                            {showCursor ? (
-                                              <motion.span
-                                                animate={{ opacity: [1, 0, 1] }}
-                                                transition={{ duration: 0.8, repeat: Infinity }}
-                                                className="ml-[1px] inline-block h-[1.1em] w-[2px] translate-y-[2px] bg-cyan-300 align-middle"
-                                              />
-                                            ) : null}
-                                          </>
-                                        );
-                                      })()}
-                                    </span>
-                                  </div>
-                                ))}
+                              <div className="p-6 flex-1 font-mono text-[12px] leading-6 text-emerald-400/90 overflow-hidden">
+                                <div className="mb-4 text-slate-500">// finance-consolidation.gs</div>
+                                {FINANCE_CODE_LINES.map((line, idx) => {
+                                  const prefixUnits = FINANCE_CODE_LINES.slice(0, idx).reduce((sum, l) => sum + l.length + 5, 0) + 150; // Delay for Gemini start
+                                  const isVisible = typedCodeUnits > prefixUnits;
+                                  const currentVisible = Math.min(typedCodeUnits - prefixUnits, line.length);
+                                  
+                                  return (
+                                    <div key={`${item.id}-code-${idx}`} className="flex gap-4">
+                                      <span className="w-4 text-slate-700">{idx + 1}</span>
+                                      <span>{isVisible ? line.slice(0, currentVisible) : ''}</span>
+                                    </div>
+                                  );
+                                })}
                               </div>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    ) : activeTutorial?.id === 'demo' ? (
-                      <div className="relative p-6">
-                        <div className="mb-4 flex flex-wrap gap-3">
-                          {activeTutorial?.chips.map((chip) => (
-                            <div key={chip} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600">
-                              {chip}
-                            </div>
-                          ))}
-                        </div>
-                        {isPeopleOps ? (
-                          <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-                            <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 shadow-sm">
-                              <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 text-white">
-                                <div className="flex items-center gap-2 text-sm font-semibold text-sky-300">
-                                  <Play size={16} />
-                                  Weekly Issue Demo Recording
+                              {/* Trigger Section */}
+                              <motion.div 
+                                initial={{ y: 50, opacity: 0 }}
+                                animate={{ y: typedCodeUnits > 600 ? 0 : 50, opacity: typedCodeUnits > 600 ? 1 : 0 }}
+                                className="mt-auto border-t border-white/5 bg-slate-900/50 p-5"
+                              >
+                                <div className="flex items-center gap-2 text-[11px] font-black text-slate-500 uppercase tracking-widest mb-3">
+                                  <Settings size={14} className="animate-spin-slow" />
+                                  Trigger Deployment
                                 </div>
-                                <div className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">LIVE PLAYBACK</div>
-                              </div>
-                              <div className="bg-black p-3">
-                                <video
-                                  ref={demoVideoRef}
-                                  className="aspect-video w-full rounded-[18px] bg-black"
-                                  src="/gas_test.mov"
-                                  controls
-                                  playsInline
-                                  preload="metadata"
-                                  onPlay={handleDemoPlay}
-                                />
-                              </div>
-                            </div>
-                            <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
-                              <div className="mb-4 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Demo Scope</div>
-                              <div className="space-y-3">
-                                {activeTutorial?.stats.map(([label, value]) => (
-                                  <div key={label} className="rounded-2xl bg-slate-50 px-4 py-4">
-                                    <div className="text-sm text-slate-500">{label}</div>
-                                    <div className="mt-2 text-xl font-bold text-slate-900">{value}</div>
-                                  </div>
-                                ))}
-                              </div>
+                                <div className="space-y-1 font-mono text-[11px] text-emerald-500/70">
+                                  {FINANCE_TRIGGER_STEPS.map((step, idx) => (
+                                    <div key={`${item.id}-trigger-${idx}`}>{step}</div>
+                                  ))}
+                                </div>
+                              </motion.div>
                             </div>
                           </div>
                         ) : (
-                          <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-                            <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 shadow-sm">
-                              <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 text-white">
-                                <div className="flex items-center gap-2 text-sm font-semibold text-sky-300">
-                                  <LayoutDashboard size={16} />
-                                  Live Web Environment
-                                </div>
-                                <div className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">INTERACTIVE DEMO</div>
+                          <div className="grid h-full grid-cols-[220px_minmax(0,1fr)]">
+                            <div className="border-r border-slate-200 bg-slate-950 p-5 text-white">
+                              <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-sky-300">
+                                <Code2 size={16} />
+                                weekly-issue-report.gs
                               </div>
-
-                              {/* Browser Address Bar */}
-                              <div className="flex items-center gap-3 border-b border-white/10 bg-slate-900 px-4 py-2.5">
-                                <div className="flex gap-1.5">
-                                  <div className="h-2.5 w-2.5 rounded-full bg-slate-700" />
-                                  <div className="h-2.5 w-2.5 rounded-full bg-slate-700" />
-                                  <div className="h-2.5 w-2.5 rounded-full bg-slate-700" />
-                                </div>
-                                <div className="flex flex-1 items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 border border-white/5">
-                                  <Code2 size={14} className="text-slate-500" />
-                                  <input 
-                                    type="text" 
-                                    value={inputUrl}
-                                    onChange={(e) => setInputUrl(e.target.value)}
-                                    placeholder="Enter URL and press Enter (e.g., google.com)"
-                                    className="w-full bg-transparent text-xs text-slate-300 outline-none placeholder:text-slate-600"
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter') {
-                                        handleUrlSubmit();
-                                      }
-                                    }}
-                                  />
-                                </div>
-                                <button 
-                                  className="rounded-md bg-sky-500/20 px-3 py-1.5 text-xs font-bold text-sky-400 transition-colors hover:bg-sky-500/30"
-                                  onClick={handleUrlSubmit}
-                                >
-                                  {isLoaded ? 'RELOAD' : 'GO'}
-                                </button>
-                              </div>
-
-                              <div className="relative aspect-video w-full bg-slate-950/95 flex flex-col items-center justify-center p-8 text-center">
-                                {/* Ambient Glow Background */}
-                                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                                  <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px]" />
-                                </div>
-
-                                <div className="relative z-10">
-                                  <div className="mb-6 mx-auto flex h-24 w-24 items-center justify-center rounded-[32px] bg-white/5 border border-white/10 text-sky-400 shadow-2xl">
-                                    <LayoutDashboard size={48} strokeWidth={1.5} />
-                                  </div>
-                                  <h4 className="mb-3 text-2xl font-bold text-white tracking-tight">외부 데모 환경 연결</h4>
-                                  <p className="mb-10 max-w-sm text-base text-slate-400 leading-relaxed">
-                                    보안 정책 및 원활한 사용 환경을 위해<br/>데모 페이지를 <span className="text-sky-400 font-semibold">새 브라우저 창</span>에서 엽니다.
-                                  </p>
-                                  
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      let url = inputUrl.trim();
-                                      if (url && !url.startsWith('http')) {
-                                        url = 'https://' + url;
-                                      }
-                                      window.open(url, '_blank', 'noopener,noreferrer');
-                                    }}
-                                    className="group relative flex items-center gap-4 rounded-2xl bg-white px-10 py-5 text-xl font-black text-slate-950 shadow-2xl transition-all hover:scale-[1.03] active:scale-95 hover:bg-sky-50"
-                                  >
-                                    <Play size={22} className="fill-slate-950" />
-                                    데모 환경 접속하기
-                                    <div className="absolute -inset-0.5 -z-10 rounded-2xl bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 blur transition group-hover:opacity-30" />
-                                  </button>
-                                  
-                                  <div className="mt-8 flex items-center justify-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-widest">
-                                    <span className="h-1 w-1 rounded-full bg-slate-700" />
-                                    External Environment
-                                    <span className="h-1 w-1 rounded-full bg-slate-700" />
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
-                              <div className="mb-4 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Demo Environment</div>
-                              <div className="space-y-3">
-                                {activeTutorial?.stats.map(([label, value]) => (
-                                  <div key={label} className="rounded-2xl bg-slate-50 px-4 py-4">
-                                    <div className="text-sm text-slate-500">{label}</div>
-                                    <div className="mt-2 text-xl font-bold text-slate-900">{value}</div>
+                              <div className="space-y-2 text-xs text-white/55">
+                                {activeTutorial.chips.map((label) => (
+                                  <div key={`${item.id}-chip-${label}`} className="rounded-xl bg-white/5 px-3 py-2">
+                                    {label}
                                   </div>
                                 ))}
                               </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="relative p-6">
-                        <div className="mb-4 flex flex-wrap gap-3">
-                          {activeTutorial?.chips.map((chip) => (
-                            <div key={chip} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600">
-                              {chip}
-                            </div>
-                          ))}
-                        </div>
-                        <div className="flex flex-col items-center justify-center min-h-[400px]">
-                          {activeTutorial?.id === 'painpoint' && <AlertTriangle size={48} className="text-amber-500 mb-4" />}
-                          {activeTutorial?.id === 'analysis' && <TrendingUp size={48} className="text-blue-500 mb-4" />}
-                          {activeTutorial?.id === 'validation' && <CheckCircle2 size={48} className="text-emerald-500 mb-4" />}
-                          
-                          <div className="text-xl font-bold text-slate-900">{activeTutorial?.label}</div>
-                          <div className="text-slate-500 mt-2 text-center max-w-md">{activeTutorial?.helper}</div>
-                          
-                          <div className="mt-8 grid gap-4 md:grid-cols-3 w-full">
-                             {activeTutorial?.stats.map(([label, value]) => (
-                               <motion.div 
-                                 key={label} 
-                                 initial={{ opacity: 0, y: 10 }}
-                                 animate={{ opacity: 1, y: 0 }}
-                                 className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"
-                               >
-                                 <div className="text-sm text-slate-500">{label}</div>
-                                 <div className="text-2xl font-bold text-slate-900 mt-1">{value}</div>
-                               </motion.div>
-                             ))}
-                          </div>
 
-                          {/* Render specific output reveal for validation */}
-                          {activeTutorial?.id === 'validation' && (
-                            <div className="mt-10 w-full">
-                               <div className="grid gap-3 md:grid-cols-2">
-                                  {(isPeopleOps ? PEOPLE_OUTPUT_ITEMS : ['파트별 데이터 정규화 완료', '중복 및 누락 데이터 0건', '마스터 시트 실시간 연동', '부서별 열람 권한 설정']).map((output, idx) => (
-                                    <motion.div
-                                      key={idx}
-                                      initial={{ opacity: 0, x: 10 }}
-                                      animate={{ opacity: outputRevealCount > idx ? 1 : 0, x: outputRevealCount > idx ? 0 : 10 }}
-                                      className="rounded-xl border border-emerald-100 bg-emerald-50/50 px-4 py-3 text-sm text-emerald-800 flex items-center gap-2"
-                                    >
-                                      <CheckCircle2 size={16} />
-                                      {output}
-                                    </motion.div>
+                            <div className="relative p-6">
+                              <div className="mb-4 flex flex-wrap gap-3">
+                                {activeTutorial.chips.map((chip) => (
+                                  <div key={`${item.id}-chip-tag-${chip}`} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600">
+                                    {chip}
+                                  </div>
+                                ))}
+                              </div>
+
+                              <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 p-5 shadow-sm">
+                                <div className="mb-4 flex items-center justify-between">
+                                  <div className="text-sm font-semibold text-white/80">Weekly Issue 분석 스크립트</div>
+                                  <div className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">EDIT MODE</div>
+                                </div>
+                                <div className="space-y-2 font-mono text-[13px] leading-7 text-slate-200">
+                                  {PEOPLE_CODE_LINES.map((line, idx) => (
+                                    <div key={`${item.id}-people-code-${idx}`} className="flex gap-4">
+                                      <span className="w-6 text-right text-slate-500">{idx + 1}</span>
+                                      <span>
+                                        {(() => {
+                                          const prefixUnits = PEOPLE_CODE_LINES
+                                            .slice(0, idx)
+                                            .reduce((sum, currentLine) => sum + currentLine.length + 6, 0);
+                                          const localUnits = Math.max(typedCodeUnits - prefixUnits, 0);
+                                          const visibleChars = Math.min(localUnits, line.length);
+                                          const showCursor = localUnits >= 0 && localUnits < line.length + 6;
+                                          return (
+                                            <>
+                                              {line.slice(0, visibleChars)}
+                                              {showCursor ? (
+                                                <motion.span
+                                                  animate={{ opacity: [1, 0, 1] }}
+                                                  transition={{ duration: 0.8, repeat: Infinity }}
+                                                  className="ml-[1px] inline-block h-[1.1em] w-[2px] translate-y-[2px] bg-cyan-300 align-middle"
+                                                />
+                                              ) : null}
+                                            </>
+                                          );
+                                        })()}
+                                      </span>
+                                    </div>
                                   ))}
-                               </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      ) : activeTutorial?.id === 'demo' ? (
+                        <div className="relative p-6">
+                          <div className="mb-4 flex flex-wrap gap-3">
+                            {activeTutorial?.chips.map((chip) => (
+                              <div key={`${item.id}-demo-chip-${chip}`} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600">
+                                {chip}
+                              </div>
+                            ))}
+                          </div>
+                          {isPeopleOps ? (
+                            <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+                              <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 shadow-sm">
+                                <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 text-white">
+                                  <div className="flex items-center gap-2 text-sm font-semibold text-sky-300">
+                                    <Play size={16} />
+                                    Weekly Issue Demo Recording
+                                  </div>
+                                  <div className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">LIVE PLAYBACK</div>
+                                </div>
+                                <div className="bg-black p-3">
+                                  <video
+                                    ref={demoVideoRef}
+                                    className="aspect-video w-full rounded-[18px] bg-black"
+                                    src="/gas_test.mov"
+                                    controls
+                                    playsInline
+                                    preload="metadata"
+                                    onPlay={handleDemoPlay}
+                                  />
+                                </div>
+                              </div>
+                              <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
+                                <div className="mb-4 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Demo Scope</div>
+                                <div className="space-y-3">
+                                  {activeTutorial?.stats.map(([label, value]) => (
+                                    <div key={`${item.id}-stat-${label}`} className="rounded-2xl bg-slate-50 px-4 py-4">
+                                      <div className="text-sm text-slate-500">{label}</div>
+                                      <div className="mt-2 text-xl font-bold text-slate-900">{value}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+                              <div className="overflow-hidden rounded-[24px] border border-slate-200 bg-slate-950 shadow-sm">
+                                <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 text-white">
+                                  <div className="flex items-center gap-2 text-sm font-semibold text-sky-300">
+                                    <LayoutDashboard size={16} />
+                                    Live Web Environment
+                                  </div>
+                                  <div className="rounded-full bg-emerald-400/10 px-3 py-1 text-xs font-bold text-emerald-300">INTERACTIVE DEMO</div>
+                                </div>
+
+                                {/* Browser Address Bar */}
+                                <div className="flex items-center gap-3 border-b border-white/10 bg-slate-900 px-4 py-2.5">
+                                  <div className="flex gap-1.5">
+                                    <div className="h-2.5 w-2.5 rounded-full bg-slate-700" />
+                                    <div className="h-2.5 w-2.5 rounded-full bg-slate-700" />
+                                    <div className="h-2.5 w-2.5 rounded-full bg-slate-700" />
+                                  </div>
+                                  <div className="flex flex-1 items-center gap-2 rounded-lg bg-slate-800 px-3 py-1.5 border border-white/5">
+                                    <Code2 size={14} className="text-slate-500" />
+                                    <input 
+                                      type="text" 
+                                      value={inputUrl}
+                                      onChange={(e) => setInputUrl(e.target.value)}
+                                      placeholder="Enter URL and press Enter (e.g., google.com)"
+                                      className="w-full bg-transparent text-xs text-slate-300 outline-none placeholder:text-slate-600"
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          handleUrlSubmit();
+                                        }
+                                      }}
+                                    />
+                                  </div>
+                                  <button 
+                                    className="rounded-md bg-sky-500/20 px-3 py-1.5 text-xs font-bold text-sky-400 transition-colors hover:bg-sky-500/30"
+                                    onClick={handleUrlSubmit}
+                                  >
+                                    {isLoaded ? 'RELOAD' : 'GO'}
+                                  </button>
+                                </div>
+
+                                <div className="relative aspect-video w-full bg-slate-950/95 flex flex-col items-center justify-center p-8 text-center">
+                                  {/* Ambient Glow Background */}
+                                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px]" />
+                                  </div>
+
+                                  <div className="relative z-10">
+                                    <div className="mb-6 mx-auto flex h-24 w-24 items-center justify-center rounded-[32px] bg-white/5 border border-white/10 text-sky-400 shadow-2xl">
+                                      <LayoutDashboard size={48} strokeWidth={1.5} />
+                                    </div>
+                                    <h4 className="mb-3 text-2xl font-bold text-white tracking-tight">외부 데모 환경 연결</h4>
+                                    <p className="mb-10 max-w-sm text-base text-slate-400 leading-relaxed">
+                                      보안 정책 및 원활한 사용 환경을 위해<br/>데모 페이지를 <span className="text-sky-400 font-semibold">새 브라우저 창</span>에서 엽니다.
+                                    </p>
+                                    
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        let url = inputUrl.trim();
+                                        if (url && !url.startsWith('http')) {
+                                          url = 'https://' + url;
+                                        }
+                                        window.open(url, '_blank', 'noopener,noreferrer');
+                                      }}
+                                      className="group relative flex items-center gap-4 rounded-2xl bg-white px-10 py-5 text-xl font-black text-slate-950 shadow-2xl transition-all hover:scale-[1.03] active:scale-95 hover:bg-sky-50"
+                                    >
+                                      <Play size={22} className="fill-slate-950" />
+                                      데모 환경 접속하기
+                                      <div className="absolute -inset-0.5 -z-10 rounded-2xl bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 blur transition group-hover:opacity-30" />
+                                    </button>
+                                    
+                                    <div className="mt-8 flex items-center justify-center gap-2 text-xs font-medium text-slate-500 uppercase tracking-widest">
+                                      <span className="h-1 w-1 rounded-full bg-slate-700" />
+                                      External Environment
+                                      <span className="h-1 w-1 rounded-full bg-slate-700" />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
+                                <div className="mb-4 text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Demo Environment</div>
+                                <div className="space-y-3">
+                                  {activeTutorial?.stats.map(([label, value]) => (
+                                    <div key={`${item.id}-env-stat-${label}`} className="rounded-2xl bg-slate-50 px-4 py-4">
+                                      <div className="text-sm text-slate-500">{label}</div>
+                                      <div className="mt-2 text-xl font-bold text-slate-900">{value}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="relative p-6">
+                          <div className="mb-4 flex flex-wrap gap-3">
+                            {activeTutorial?.chips.map((chip) => (
+                              <div key={`${item.id}-tutorial-chip-${chip}`} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-semibold text-slate-600">
+                                {chip}
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex flex-col items-center justify-center min-h-[400px]">
+                            {activeTutorial?.id === 'painpoint' && <AlertTriangle size={48} className="text-amber-500 mb-4" />}
+                            {activeTutorial?.id === 'analysis' && <TrendingUp size={48} className="text-blue-500 mb-4" />}
+                            {activeTutorial?.id === 'validation' && <CheckCircle2 size={48} className="text-emerald-500 mb-4" />}
+                            
+                            <div className="text-xl font-bold text-slate-900">{activeTutorial?.label}</div>
+                            <div className="text-slate-500 mt-2 text-center max-w-md">{activeTutorial?.helper}</div>
+                            
+                            <div className="mt-8 grid gap-4 md:grid-cols-3 w-full">
+                               {activeTutorial?.stats.map(([label, value]) => (
+                                 <motion.div 
+                                   key={`${item.id}-tutorial-stat-${label}`} 
+                                   initial={{ opacity: 0, y: 10 }}
+                                   animate={{ opacity: 1, y: 0 }}
+                                   className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm"
+                                 >
+                                   <div className="text-sm text-slate-500">{label}</div>
+                                   <div className="text-2xl font-bold text-slate-900 mt-1">{value}</div>
+                                 </motion.div>
+                               ))}
+                            </div>
+
+                            {/* Render specific output reveal for validation */}
+                            {activeTutorial?.id === 'validation' && (
+                              <div className="mt-10 w-full">
+                                 <div className="grid gap-3 md:grid-cols-2">
+                                    {(isPeopleOps ? [
+  'Key Issue Summary 5개 자동 생성',
+  '각사 Executive Summary 자동 생성',
+  'Weekly Issue 원문 취합 및 정렬',
+  '마스터 독스 최종 보고서 공유',
+] : ['파트별 데이터 정규화 완료', '중복 및 누락 데이터 0건', '마스터 시트 실시간 연동', '부서별 열람 권한 설정']).map((output, idx) => (
+                                      <motion.div
+                                        key={`${item.id}-output-${idx}`}
+                                        initial={{ opacity: 0, x: 10 }}
+                                        animate={{ opacity: outputRevealCount > idx ? 1 : 0, x: outputRevealCount > idx ? 0 : 10 }}
+                                        className="rounded-xl border border-emerald-100 bg-emerald-50/50 px-4 py-3 text-sm text-emerald-800 flex items-center gap-2"
+                                      >
+                                        <CheckCircle2 size={16} />
+                                        {output}
+                                      </motion.div>
+                                    ))}
+                                 </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -811,10 +793,10 @@ function CaseModal({ item, onClose }) {
 const Cases = ({ progress }) => {
   const [activeCaseId, setActiveCaseId] = useState(null);
   const trackX = useTransform(progress, [0.42, 0.54], ['0%', '-22%']);
-  const sectionOpacity = useTransform(progress, [0.06, 0.12, 0.46, 0.56], [0, 1, 1, 0]);
+  const sectionOpacity = useTransform(progress, [0.06, 0.12, 0.50, 0.60], [0, 1, 1, 0]);
   const sectionY = useTransform(progress, [0.46, 0.56], [0, -24]);
   const sectionScale = useTransform(progress, [0.46, 0.56], [1, 0.985]);
-  const railOpacity = useTransform(progress, [0.08, 0.12, 0.46, 0.54], [0, 1, 1, 0]);
+  const railOpacity = useTransform(progress, [0.08, 0.12, 0.50, 0.58], [0, 1, 1, 0]);
 
   const activeCase = cases.find((item) => item.id === activeCaseId) ?? null;
 
@@ -870,8 +852,8 @@ const Cases = ({ progress }) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-50px' }}
                 transition={{ duration: 0.6, delay: idx * 0.12 }}
-                className={`group relative text-left ${['people-ops', 'finance-ops'].includes(item.id) ? 'cursor-pointer' : ''}`}
-                onClick={['people-ops', 'finance-ops'].includes(item.id) ? () => setActiveCaseId(item.id) : undefined}
+                className={`group relative text-left ${item.hasDemo ? 'cursor-pointer' : ''}`}
+                onClick={item.hasDemo ? () => setActiveCaseId(item.id) : undefined}
               >
                 <div className={`absolute -inset-0.5 rounded-[28px] bg-gradient-to-r ${item.accent} opacity-0 blur transition duration-500 group-hover:opacity-25`} />
 
@@ -894,7 +876,7 @@ const Cases = ({ progress }) => {
                       <div className="mt-2 text-lg font-bold leading-snug">{item.highlight}</div>
                       <div className="mt-4 flex flex-wrap gap-2">
                         {item.tags.map((tag) => (
-                          <span key={tag} className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/75">
+                          <span key={`${item.id}-tag-${tag}`} className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-white/75">
                             {tag}
                           </span>
                         ))}
@@ -906,7 +888,7 @@ const Cases = ({ progress }) => {
                     {item.metrics.map((metric) => {
                       const Icon = metric.icon;
                       return (
-                        <div key={metric.label} className="flex items-center justify-between">
+                        <div key={`${item.id}-metric-${metric.label}`} className="flex items-center justify-between">
                           <span className="flex items-center gap-2 text-sm text-slate-500">
                             <Icon size={16} className={metric.color} />
                             {metric.label}
@@ -917,7 +899,7 @@ const Cases = ({ progress }) => {
                     })}
                   </div>
 
-                  {['people-ops', 'finance-ops'].includes(item.id) ? (
+                  {item.hasDemo ? (
                     <div className="mt-4 text-xs font-semibold uppercase tracking-[0.22em] text-slate-400">
                       Click to view demo
                     </div>
