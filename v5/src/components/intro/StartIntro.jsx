@@ -13,11 +13,11 @@ const StartIntro = ({ onStart }) => {
 
     const installTimer = window.setTimeout(() => {
       setIsInstalled(true);
-    }, 2800);
+    }, 1500);
 
     const transitionTimer = window.setTimeout(() => {
       onStart?.();
-    }, 6300);
+    }, 3000);
 
     return () => {
       window.clearTimeout(installTimer);
@@ -64,7 +64,7 @@ const StartIntro = ({ onStart }) => {
             <div className="flex h-[156px] w-[156px] items-center justify-center rounded-[40px] border border-white/40 bg-white text-[#f43f5e] shadow-[0_16px_40px_rgba(255,255,255,0.2)]">
               <BriefcaseBusiness size={58} strokeWidth={1.8} />
             </div>
-            <div className="mt-6 text-3xl font-bold text-white">야근</div>
+            <div className="mt-6 text-3xl font-bold text-white"></div>
           </div>
 
           <div className="hidden pt-14 md:block">
@@ -98,7 +98,7 @@ const StartIntro = ({ onStart }) => {
                     x: [0, 320, 320, 320],
                     y: [0, 0, -16, 0],
                     scale: [1, 1, 1.12, 0.94],
-                    opacity: [1, 1, 1, 1],
+                    opacity: [1, 1, 0.8, 0],
                   }
                 : { x: 0, y: 0, scale: 1, opacity: 1 }
             }
@@ -115,9 +115,13 @@ const StartIntro = ({ onStart }) => {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           onClick={handleStart}
-          className="mt-10 rounded-full border border-white/15 bg-white px-10 py-4 text-sm font-bold uppercase tracking-[0.35em] text-slate-950 shadow-[0_18px_50px_rgba(255,255,255,0.18)] transition-transform"
+          className={`mt-10 rounded-full border border-white/15 px-10 py-4 text-sm font-bold uppercase tracking-[0.35em] text-slate-950 transition-all duration-500 ${
+            isInstalled 
+              ? 'bg-amber-400 shadow-[0_18px_50px_rgba(251,191,36,0.4)]'
+              : 'bg-white shadow-[0_18px_50px_rgba(255,255,255,0.18)]'
+          }`}
         >
-          {isStarting ? 'Installing...' : 'Start'}
+          {isInstalled ? 'Done' : isStarting ? 'Installing...' : 'Start'}
         </motion.button>
       </motion.div>
     </section>
