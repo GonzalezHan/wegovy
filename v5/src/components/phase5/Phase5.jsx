@@ -30,7 +30,7 @@ const Phase5 = () => {
         
         {/* Scroll 10: Roadmap */}
         <motion.div style={{ opacity: roadmapOpacity, y: roadmapY }} className="absolute inset-0 z-10 w-full h-full flex flex-col justify-center">
-          <Roadmap />
+          <Roadmap progress={scrollYProgress} />
         </motion.div>
 
         {/* Scroll 11: CallToAction */}
