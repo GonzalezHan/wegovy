@@ -12,7 +12,7 @@ const ContactUs = () => {
         
         <div className="text-lg md:text-xl lg:text-2xl font-light opacity-90 leading-relaxed mb-16 break-keep">
           <p className="mb-2">"이것도 자동화가 될까?" 망설이지 마세요.</p>
-          <p>재무 업무효율화 TF가 여러분의 업무 시간에 여유를 찾아드리겠습니다.</p>
+          <p>재무업무생산성 TF가 여러분의 업무 시간에 여유를 찾아드리겠습니다.</p>
         </div>
 
         <a 

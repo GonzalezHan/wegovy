@@ -52,7 +52,7 @@ const StartIntro = ({ onStart }) => {
         className="relative z-10 flex flex-col items-center justify-center px-6 text-center"
       >
         <div className="mb-5 text-xs font-semibold uppercase tracking-[0.42em] text-slate-400">
-          재무 업무효율화 TF
+          재무업무생산성 TF
         </div>
         <h1 className="max-w-4xl text-4xl font-bold tracking-tight text-white md:text-6xl">
           반복 업무를
